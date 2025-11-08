@@ -34,7 +34,7 @@ int main()
     view = glm::lookAt(camPos, camPos + targetPos, up);
 
     // Create the projection matrix
-    projection = glm::perspective(glm::radians(45.0f), (float)OpenGLInit::gWindowWidth / (float)OpenGLInit::gWindowHeight, 0.1f, 100.0f);
+    projection = glm::perspective(glm::radians(45.0f), (float)OpenGLInit::_windowWidth / (float)OpenGLInit::_windowHeight, 0.1f, 100.0f);
     const float velocity = 5.0f;
 
     while (!glfwWindowShouldClose(openGLinit.GetWindow()))
@@ -45,7 +45,7 @@ int main()
         lastTime = currentTime;
 
         // Update the cube position and orientation.  Rotate first then translate
-        if (!OpenGLInit::gPause)
+        if (!OpenGLInit::_pause)
         {
             angle += deltaTime * 50.0f;
         }

@@ -1,26 +1,25 @@
-#pragma once 
+#pragma once
 
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 
 class OpenGLInit
 {
-    public:
-        ~OpenGLInit();
-        void static glfw_onKey(GLFWwindow* window, int key, int scancode, int action, int mode);
-        void static glfw_onFramebufferSize(GLFWwindow* window, int width, int height);
-        void showFPS();
-        bool initOpenGL();
+public:
+    OpenGLInit();
+    ~OpenGLInit();
+    static void glfw_onKey(GLFWwindow *window, int key, int scancode, int action, int mode);
+    static void glfw_onFramebufferSize(GLFWwindow *window, int width, int height);
+    void showFPS();
+    bool initOpenGL();
+    GLFWwindow *GetWindow() { return _window; }
+    static bool _pause;
+    static bool _wireframe;
+    static int _windowWidth;
+    static int _windowHeight;
 
-        static bool gPause;
-        const char* APP_TITLE = "md2 Loader by Raydelto Hernandez v0.1";
-        static int gWindowWidth;
-        static int gWindowHeight;
-        
-        double gElapsedSeconds;
-        GLFWwindow* GetWindow() { return gWindow; }
-    private:
-        GLFWwindow* gWindow = NULL;
-        static bool gWireframe;
+private:
+    GLFWwindow *_window;
+    double _elapsedSeconds;
+    static constexpr const char *APP_TITLE = "MD2 Loader by Raydelto Hernandez v1.0";
 };
-
