@@ -21,33 +21,24 @@ Md2::Md2(const char *md2FileName, const char *textureFileName) : _texture(std::m
 
 Md2::~Md2()
 {
-    // Clean up
+    // Clean up OpenGL resources
     for(size_t i = 0 ; i < _vaoIndices.size(); i++)
     {
         glDeleteVertexArrays(1, &_vaoIndices[i]);
         glDeleteBuffers(1, &_vboIndices[i]);
     }
-    
-    // Free malloc'd memory from LoadModel
-    if(_model)
-    {
-        if(_model->pointList)
-        {
-            free(_model->pointList);
-        }
-        if(_model->st)
-        {
-            free(_model->st);
-        }
-        if(_model->triIndx)
-        {
-            free(_model->triIndx);
-        }
-    }
+    // modData vectors are automatically cleaned up
 }
 
 void Md2::Draw(int frame, float angle, float interpolation, glm::mat4 &view, glm::mat4 &projection)
 {
+    // Validate frame bounds
+    if (frame < 0 || frame >= static_cast<int>(_vaoIndices.size()))
+    {
+        std::cerr << "Error: Invalid frame index " << frame << " (valid range: 0-" << _vaoIndices.size() - 1 << ")" << std::endl;
+        return;
+    }
+
     assert(_modelLoaded && _textureLoaded && _bufferInitialized);
     _texture->bind(0);
     glm::mat4 model;
@@ -163,85 +154,97 @@ void Md2::InitBuffer()
 
 void Md2::LoadModel(const char *md2FileName)
 {
-    FILE *fp;
-    int length;
-
-    char *buffer;
-
-    header *head;
-    textindx *stPtr;
-
-    frame *fra;
-    md2model::vector *pntlst;
-    mesh *triIndex, *bufIndexPtr;
-
-    fp = fopen(md2FileName, "rb");
+    FILE *fp = fopen(md2FileName, "rb");
     if (!fp)
     {
         std::cerr << "Error: Could not open MD2 file: " << md2FileName << std::endl;
         return;
     }
+
+    // Get file size
     fseek(fp, 0, SEEK_END);
-    length = ftell(fp);
+    long length = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
-    buffer = (char *)malloc(length + 1);
-    fread(buffer, sizeof(char), length, fp);
+    if (length < static_cast<long>(sizeof(header)))
+    {
+        std::cerr << "Error: File too small to be a valid MD2 file" << std::endl;
+        fclose(fp);
+        return;
+    }
 
-    head = (header *)buffer;
-    _model.reset((modData *)malloc(sizeof(modData)));
+    std::vector<char> buffer(length);
+    size_t bytesRead = fread(buffer.data(), sizeof(char), length, fp);
+    fclose(fp);
 
-    _model->pointList = (md2model::vector *)malloc(sizeof(md2model::vector) * head->vNum * head->Number_Of_Frames);
+    if (bytesRead != static_cast<size_t>(length))
+    {
+        std::cerr << "Error: Failed to read complete MD2 file" << std::endl;
+        return;
+    }
+
+    // Validate MD2 header
+    header *head = reinterpret_cast<header*>(buffer.data());
+    
+    // MD2 magic number is 844121161 (IDP2), version should be 8
+    if (head->id != 844121161 || head->version != 8)
+    {
+        std::cerr << "Error: Invalid MD2 file format (bad magic number or version)" << std::endl;
+        return;
+    }
+
+    _model = std::make_unique<modData>();
+    
     _model->numPoints = head->vNum;
     _model->numFrames = head->Number_Of_Frames;
     _model->frameSize = head->framesize;
+    
+    // Reserve space for vectors
+    _model->pointList.resize(head->vNum * head->Number_Of_Frames);
 
+    // Load vertex data
     for (int count = 0; count < head->Number_Of_Frames; count++)
     {
-        fra = (frame *)&buffer[head->offsetFrames + head->framesize * count];
-        pntlst = (md2model::vector *)&_model->pointList[head->vNum * count];
+        frame *fra = reinterpret_cast<frame*>(&buffer[head->offsetFrames + head->framesize * count]);
         for (int count2 = 0; count2 < head->vNum; count2++)
         {
-            pntlst[count2].point[0] = fra->scale[0] * fra->fp[count2].v[0] + fra->translate[0];
-            pntlst[count2].point[1] = fra->scale[1] * fra->fp[count2].v[1] + fra->translate[1];
-            pntlst[count2].point[2] = fra->scale[2] * fra->fp[count2].v[2] + fra->translate[2];
+            GLint index = head->vNum * count + count2;
+            _model->pointList[index].point[0] = fra->scale[0] * fra->fp[count2].v[0] + fra->translate[0];
+            _model->pointList[index].point[1] = fra->scale[1] * fra->fp[count2].v[1] + fra->translate[1];
+            _model->pointList[index].point[2] = fra->scale[2] * fra->fp[count2].v[2] + fra->translate[2];
         }
     }
 
-    _model->st = (textcoord *)malloc(sizeof(textcoord) * head->tNum);
+    // Load texture coordinates
     _model->numST = head->tNum;
-    stPtr = (textindx *)&buffer[head->offsetTCoord];
+    _model->st.resize(head->tNum);
+    textindx *stPtr = reinterpret_cast<textindx*>(&buffer[head->offsetTCoord]);
 
     for (int count = 0; count < head->tNum; count++)
     {
-        _model->st[count].s = (float)stPtr[count].s / (float)head->twidth;
-        _model->st[count].t = (float)stPtr[count].t / (float)head->theight;
+        _model->st[count].s = static_cast<float>(stPtr[count].s) / static_cast<float>(head->twidth);
+        _model->st[count].t = static_cast<float>(stPtr[count].t) / static_cast<float>(head->theight);
     }
 
-    triIndex = (mesh *)malloc(sizeof(mesh) * head->fNum);
-    _model->triIndx = triIndex;
+    // Load triangle indices
     _model->numTriangles = head->fNum;
-    bufIndexPtr = (mesh *)&buffer[head->offsetIndx];
+    _model->triIndx.resize(head->fNum);
+    mesh *bufIndexPtr = reinterpret_cast<mesh*>(&buffer[head->offsetIndx]);
 
-    for (int count = 0; count < head->Number_Of_Frames; count++)
+    for (int count2 = 0; count2 < head->fNum; count2++)
     {
-        for (int count2 = 0; count2 < head->fNum; count2++)
-        {
-            triIndex[count2].meshIndex[0] = bufIndexPtr[count2].meshIndex[0];
-            triIndex[count2].meshIndex[1] = bufIndexPtr[count2].meshIndex[1];
-            triIndex[count2].meshIndex[2] = bufIndexPtr[count2].meshIndex[2];
+        _model->triIndx[count2].meshIndex[0] = bufIndexPtr[count2].meshIndex[0];
+        _model->triIndx[count2].meshIndex[1] = bufIndexPtr[count2].meshIndex[1];
+        _model->triIndx[count2].meshIndex[2] = bufIndexPtr[count2].meshIndex[2];
 
-            triIndex[count2].stIndex[0] = bufIndexPtr[count2].stIndex[0];
-            triIndex[count2].stIndex[1] = bufIndexPtr[count2].stIndex[1];
-            triIndex[count2].stIndex[2] = bufIndexPtr[count2].stIndex[2];
-        }
+        _model->triIndx[count2].stIndex[0] = bufIndexPtr[count2].stIndex[0];
+        _model->triIndx[count2].stIndex[1] = bufIndexPtr[count2].stIndex[1];
+        _model->triIndx[count2].stIndex[2] = bufIndexPtr[count2].stIndex[2];
     }
 
     _model->currentFrame = 0;
     _model->nextFrame = 1;
     _model->interpol = 0.0;
 
-    free(buffer);
-    fclose(fp);
     _modelLoaded = true;
 }

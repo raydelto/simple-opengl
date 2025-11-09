@@ -25,6 +25,12 @@ void display(OpenGLHandler &openGL)
     constexpr int endFrame = 197;
 
     md2model::Md2 player("data/female.md2", "data/female.tga");
+    
+    if (!player.isValid())
+    {
+        std::cerr << "Failed to load MD2 model" << std::endl;
+        return;
+    }
 
     double lastTime = glfwGetTime();
     float angle = 0.0f;

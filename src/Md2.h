@@ -87,15 +87,9 @@ namespace md2model
         int currentFrame;
         int nextFrame;
         float interpol;
-        mesh *triIndx;
-        textcoord *st;
-        md2model::vector *pointList;
-        float x, y, z;
-        float nextX, nextY, nextZ;
-        float radius;
-        float dist_to_player;
-        int state;
-        float speed;
+        std::vector<mesh> triIndx;
+        std::vector<textcoord> st;
+        std::vector<md2model::vector> pointList;
     };
 
     class Md2
@@ -106,6 +100,7 @@ namespace md2model
         // The frame parameter start at 0
         void Draw(int frame, float angle, float interpolation, glm::mat4 &view, glm::mat4 &projection);
         void SetPause(bool pause) { _pause = pause; }
+        bool isValid() const { return _modelLoaded && _textureLoaded && _bufferInitialized; }
 
     private:
         void LoadModel(const char *md2FileName);
