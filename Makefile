@@ -41,7 +41,7 @@ endif
 
 WARNINGS=-Wall
 
-FLAGS=-std=c++17
+FLAGS=-std=c++17 -DGLEW_STATIC
 
 bin/%.o: src/%.cpp | bin
 	g++ -c $< -o $@ $(INCLUDES) $(WARNINGS) $(FLAGS)

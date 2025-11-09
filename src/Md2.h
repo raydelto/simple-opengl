@@ -112,10 +112,10 @@ namespace md2model
         void LoadTexture(const char *textureFileName);
         void InitBuffer();
 
-        std::unique_ptr<modData> m_model;
-        std::unique_ptr<Texture2D> m_texture;
-        std::vector<GLuint> m_vaoIndices;
-        std::vector<GLuint> m_vboIndices;
+        std::unique_ptr<modData> _model;
+        std::unique_ptr<Texture2D> _texture;
+        std::vector<GLuint> _vaoIndices;
+        std::vector<GLuint> _vboIndices;
         std::unique_ptr<ShaderProgram> _shaderProgram;
         std::map<int, std::pair<int, int>> _frameIndices;
         bool _pause;
