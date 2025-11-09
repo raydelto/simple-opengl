@@ -30,7 +30,7 @@ Md2::~Md2()
     // modData vectors are automatically cleaned up
 }
 
-void Md2::Draw(int frame, float angle, float interpolation, glm::mat4 &view, glm::mat4 &projection)
+void Md2::Draw(int frame, float angle, float interpolation, const glm::mat4 &view, const glm::mat4 &projection)
 {
     // Validate frame bounds
     if (frame < 0 || frame >= static_cast<int>(_vaoIndices.size()))
@@ -43,8 +43,9 @@ void Md2::Draw(int frame, float angle, float interpolation, glm::mat4 &view, glm
     _texture->bind(0);
     glm::mat4 model;
 
-    // Rotates around the cube center
-    model = glm::translate(model, _position) * glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f)) * glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(model, glm::vec3(0.3, 0.3, 0.3));
+    // Transform model: translate, rotate, and scale
+    constexpr float MODEL_SCALE = 0.3f;
+    model = glm::translate(model, _position) * glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f)) * glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(model, glm::vec3(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE));
 
     _shaderProgram->use();
     _shaderProgram->setUniform("model", model);
@@ -89,17 +90,17 @@ void Md2::InitBuffer()
         {
 
             // Start of the vertex data
-            for (int p = 0; p < 3; p++)
+            for (int p = 0; p < VERTICES_PER_TRIANGLE; p++)
             {
                 // current frame
-                for (int j = 0; j < 3; j++)
+                for (int j = 0; j < POSITION_COMPONENTS; j++)
                 {
                     // vertices
                     md2Vertices.emplace_back(currentFrame[_model->triIndx[index].meshIndex[p]].point[j]);
                 }
 
                 // next frame
-                for (int j = 0; j < 3; j++)
+                for (int j = 0; j < POSITION_COMPONENTS; j++)
                 {
                     // vertices
                     md2Vertices.emplace_back(nextFrame[_model->triIndx[index].meshIndex[p]].point[j]);
@@ -125,21 +126,21 @@ void Md2::InitBuffer()
         glGenVertexArrays(1, &vao); // Tell OpenGL to create new Vertex Array Object
 
         auto count = _frameIndices[frameIndex].second - _frameIndices[frameIndex].first + 1;
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);                                                                                           // "bind" or set as the current buffer we are working with
-        glBufferData(GL_ARRAY_BUFFER, count * sizeof(float) * 8, &md2Vertices[_frameIndices[frameIndex].first * 8], GL_STATIC_DRAW); // copy the data from CPU to GPU
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, count * sizeof(float) * FLOATS_PER_VERTEX, &md2Vertices[_frameIndices[frameIndex].first * FLOATS_PER_VERTEX], GL_STATIC_DRAW);
 
         glBindVertexArray(vao); // Make it the current one
 
         // Current Frame Position attribute
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid *)(0));
+        glVertexAttribPointer(0, POSITION_COMPONENTS, GL_FLOAT, GL_FALSE, FLOATS_PER_VERTEX * sizeof(GLfloat), (GLvoid *)(0));
         glEnableVertexAttribArray(0);
 
         // Next  Frame Position attribute
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
+        glVertexAttribPointer(1, POSITION_COMPONENTS, GL_FLOAT, GL_FALSE, FLOATS_PER_VERTEX * sizeof(GLfloat), (GLvoid *)(POSITION_COMPONENTS * sizeof(GLfloat)));
         glEnableVertexAttribArray(1);
 
         // Texture Coord attribute
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid *)(6 * sizeof(GLfloat)));
+        glVertexAttribPointer(2, TEXCOORD_COMPONENTS, GL_FLOAT, GL_FALSE, FLOATS_PER_VERTEX * sizeof(GLfloat), (GLvoid *)((POSITION_COMPONENTS * 2) * sizeof(GLfloat)));
         glEnableVertexAttribArray(2);
         frameIndex++;
         _vaoIndices.emplace_back(vao);
@@ -186,8 +187,8 @@ void Md2::LoadModel(const char *md2FileName)
     // Validate MD2 header
     header *head = reinterpret_cast<header*>(buffer.data());
     
-    // MD2 magic number is 844121161 (IDP2), version should be 8
-    if (head->id != 844121161 || head->version != 8)
+    // Validate MD2 file format
+    if (head->id != MD2_MAGIC_NUMBER || head->version != MD2_VERSION)
     {
         std::cerr << "Error: Invalid MD2 file format (bad magic number or version)" << std::endl;
         return;

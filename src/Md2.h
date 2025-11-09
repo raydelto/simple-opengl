@@ -17,6 +17,16 @@ class Texture2D;
 
 namespace md2model
 {
+    // MD2 Format Constants
+    constexpr int MD2_MAGIC_NUMBER = 844121161;  // "IDP2"
+    constexpr int MD2_VERSION = 8;
+    
+    // Vertex data layout
+    constexpr int FLOATS_PER_VERTEX = 8;  // current_pos(3) + next_pos(3) + tex_coords(2)
+    constexpr int VERTICES_PER_TRIANGLE = 3;
+    constexpr int POSITION_COMPONENTS = 3;
+    constexpr int TEXCOORD_COMPONENTS = 2;
+    
     struct header
     {
         int id;
@@ -98,7 +108,7 @@ namespace md2model
         Md2(const char *md2FileName, const char *textureFileName);
         ~Md2();
         // The frame parameter start at 0
-        void Draw(int frame, float angle, float interpolation, glm::mat4 &view, glm::mat4 &projection);
+        void Draw(int frame, float angle, float interpolation, const glm::mat4 &view, const glm::mat4 &projection);
         void SetPause(bool pause) { _pause = pause; }
         bool isValid() const { return _modelLoaded && _textureLoaded && _bufferInitialized; }
 

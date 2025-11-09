@@ -2,6 +2,14 @@
 #include <iostream>
 #include "Md2.h"
 
+// Animation constants
+namespace
+{
+    constexpr float MODEL_SCALE = 0.3f;
+    constexpr float ROTATION_SPEED = 50.0f;  // degrees per second
+    constexpr float ANIMATION_VELOCITY = 5.0f;
+}
+
 void display(OpenGLHandler &openGL);
 
 int main()
@@ -36,10 +44,7 @@ void display(OpenGLHandler &openGL)
     float angle = 0.0f;
 
     int renderFrame = startFrame;
-
-    // Rendering loop
     float interpolation = 0.0f;
-    int bufferIndex = 0;
 
     glm::mat4 view, projection;
     glm::vec3 camPos(0.0f, 0.0f, 0.0f);
@@ -50,8 +55,7 @@ void display(OpenGLHandler &openGL)
     view = glm::lookAt(camPos, camPos + targetPos, up);
 
     // Create the projection matrix
-    projection = glm::perspective(glm::radians(45.0f), (float)OpenGLHandler::_windowWidth / (float)OpenGLHandler::_windowHeight, 0.1f, 100.0f);
-    const float velocity = 5.0f;
+    projection = glm::perspective(glm::radians(45.0f), (float)OpenGLHandler::getWindowWidth() / (float)OpenGLHandler::getWindowHeight(), 0.1f, 100.0f);
 
     while (!glfwWindowShouldClose(openGL.getWindow()))
     {
@@ -60,10 +64,10 @@ void display(OpenGLHandler &openGL)
         float deltaTime = currentTime - lastTime;
         lastTime = currentTime;
 
-        // Update the cube position and orientation.  Rotate first then translate
-        if (!OpenGLHandler::_pause)
+        // Update the model rotation
+        if (!OpenGLHandler::isPaused())
         {
-            angle += deltaTime * 50.0f;
+            angle += deltaTime * ROTATION_SPEED;
         }
 
         if (angle >= 360.0f)
@@ -87,14 +91,12 @@ void display(OpenGLHandler &openGL)
             if (renderFrame == endFrame)
             {
                 renderFrame = startFrame;
-                bufferIndex = 0;
             }
             else
             {
                 renderFrame++;
-                bufferIndex++;
             }
         }
-        interpolation += velocity * deltaTime;
+        interpolation += ANIMATION_VELOCITY * deltaTime;
     }
 }
