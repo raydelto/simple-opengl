@@ -3,16 +3,16 @@
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 
-class OpenGLInit
+class OpenGLHandler
 {
 public:
-    OpenGLInit();
-    ~OpenGLInit();
+    OpenGLHandler();
+    ~OpenGLHandler();
     static void glfw_onKey(GLFWwindow *window, int key, int scancode, int action, int mode);
     static void glfw_onFramebufferSize(GLFWwindow *window, int width, int height);
     void showFPS();
-    bool initOpenGL();
-    GLFWwindow *GetWindow() { return _window; }
+    bool init();
+    GLFWwindow* getWindow() { return _window; }
     static bool _pause;
     static bool _wireframe;
     static int _windowWidth;

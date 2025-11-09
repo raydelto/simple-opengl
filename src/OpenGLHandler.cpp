@@ -1,18 +1,18 @@
-#include "OpenGLInit.h"
+#include "OpenGLHandler.h"
 #include <iostream>
 #include <sstream>
 
-bool OpenGLInit::_pause = false;
-bool OpenGLInit::_wireframe = false;
+bool OpenGLHandler::_pause = false;
+bool OpenGLHandler::_wireframe = false;
 
-int OpenGLInit::_windowWidth = 1024;
-int OpenGLInit::_windowHeight = 768;
+int OpenGLHandler::_windowWidth = 1024;
+int OpenGLHandler::_windowHeight = 768;
 
-OpenGLInit::OpenGLInit() : _window(nullptr)
+OpenGLHandler::OpenGLHandler() : _window(nullptr)
 {
 }
 
-OpenGLInit::~OpenGLInit()
+OpenGLHandler::~OpenGLHandler()
 {
     glfwDestroyWindow(_window);
     glfwTerminate();
@@ -21,7 +21,7 @@ OpenGLInit::~OpenGLInit()
 //-----------------------------------------------------------------------------
 // Initialize GLFW and OpenGL
 //-----------------------------------------------------------------------------
-bool OpenGLInit::initOpenGL()
+bool OpenGLHandler::init()
 {
     // Intialize GLFW
     // GLFW is configured.  Must be called before calling any GLFW functions
@@ -73,7 +73,7 @@ bool OpenGLInit::initOpenGL()
 //-----------------------------------------------------------------------------
 // Is called whenever a key is pressed/released via GLFW
 //-----------------------------------------------------------------------------
-void OpenGLInit::glfw_onKey(GLFWwindow *window, int key, int scancode, int action, int mode)
+void OpenGLHandler::glfw_onKey(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
@@ -94,7 +94,7 @@ void OpenGLInit::glfw_onKey(GLFWwindow *window, int key, int scancode, int actio
 //-----------------------------------------------------------------------------
 // Is called when the window is resized
 //-----------------------------------------------------------------------------
-void OpenGLInit::glfw_onFramebufferSize(GLFWwindow *window, int width, int height)
+void OpenGLHandler::glfw_onFramebufferSize(GLFWwindow *window, int width, int height)
 {
     _windowWidth = width;
     _windowHeight = height;
@@ -105,7 +105,7 @@ void OpenGLInit::glfw_onFramebufferSize(GLFWwindow *window, int width, int heigh
 // Code computes the average frames per second, and also the average time it takes
 // to render one frame.  These stats are appended to the window caption bar.
 //-----------------------------------------------------------------------------
-void OpenGLInit::showFPS()
+void OpenGLHandler::showFPS()
 {
     static double previousSeconds = 0.0;
     static int frameCount = 0;

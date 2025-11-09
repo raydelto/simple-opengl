@@ -2,11 +2,7 @@
 
 #include <string>
 #include <map>
-#ifdef __APPLE__
-#include <glad/glad.h>
-#else
 #include "GL/glew.h"
-#endif
 #include "glm/glm.hpp"
 using std::string;
 
