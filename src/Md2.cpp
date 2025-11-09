@@ -1,6 +1,7 @@
 #include "Md2.h"
 #include "ShaderProgram.h"
 #include "Texture2D.h"
+#include <iostream>
 
 using namespace md2model;
 
@@ -21,10 +22,27 @@ Md2::Md2(const char *md2FileName, const char *textureFileName) : m_texture(std::
 Md2::~Md2()
 {
     // Clean up
-    for (size_t i = 0; i < m_vaoIndices.size(); i++)
+    for(size_t i = 0 ; i < m_vaoIndices.size(); i++)
     {
         glDeleteVertexArrays(1, &m_vaoIndices[i]);
         glDeleteBuffers(1, &m_vboIndices[i]);
+    }
+    
+    // Free malloc'd memory from LoadModel
+    if(m_model)
+    {
+        if(m_model->pointList)
+        {
+            free(m_model->pointList);
+        }
+        if(m_model->st)
+        {
+            free(m_model->st);
+        }
+        if(m_model->triIndx)
+        {
+            free(m_model->triIndx);
+        }
     }
 }
 
@@ -158,6 +176,11 @@ void Md2::LoadModel(const char *md2FileName)
     mesh *triIndex, *bufIndexPtr;
 
     fp = fopen(md2FileName, "rb");
+    if (!fp)
+    {
+        std::cerr << "Error: Could not open MD2 file: " << md2FileName << std::endl;
+        return;
+    }
     fseek(fp, 0, SEEK_END);
     length = ftell(fp);
     fseek(fp, 0, SEEK_SET);
@@ -218,6 +241,7 @@ void Md2::LoadModel(const char *md2FileName)
     m_model->nextFrame = 1;
     m_model->interpol = 0.0;
 
+    free(buffer);
     fclose(fp);
     m_modelLoaded = true;
 }
