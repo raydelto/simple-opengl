@@ -8,11 +8,11 @@ LIBS = -L. \
 	   -lopengl32 \
 	   -lgdi32
 
-INCLUDES = -IC:\msys64\mingw64\include -isystem ./include
+INCLUDES = -IC:\msys64\mingw64\include
 
 WARNINGS = -Wall
 
-FLAGS = -std=c++17 -DGLEW_STATIC
+FLAGS = -std=c++17 -DGLEW_STATIC -DGLM_ENABLE_EXPERIMENTAL -DGLM_FORCE_RADIANS
 
 all: bin/main.exe
 

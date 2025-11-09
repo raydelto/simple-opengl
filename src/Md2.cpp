@@ -22,7 +22,7 @@ Md2::Md2(const char *md2FileName, const char *textureFileName) : _texture(std::m
 Md2::~Md2()
 {
     // Clean up OpenGL resources
-    for(size_t i = 0 ; i < _vaoIndices.size(); i++)
+    for (size_t i = 0; i < _vaoIndices.size(); i++)
     {
         glDeleteVertexArrays(1, &_vaoIndices[i]);
         glDeleteBuffers(1, &_vboIndices[i]);
@@ -41,7 +41,7 @@ void Md2::Draw(int frame, float angle, float interpolation, const glm::mat4 &vie
 
     assert(_modelLoaded && _textureLoaded && _bufferInitialized);
     _texture->bind(0);
-    glm::mat4 model;
+    glm::mat4 model(1.0f);
 
     // Transform model: translate, rotate, and scale
     constexpr float MODEL_SCALE = 0.3f;
@@ -185,8 +185,8 @@ void Md2::LoadModel(const char *md2FileName)
     }
 
     // Validate MD2 header
-    header *head = reinterpret_cast<header*>(buffer.data());
-    
+    header *head = reinterpret_cast<header *>(buffer.data());
+
     // Validate MD2 file format
     if (head->id != MD2_MAGIC_NUMBER || head->version != MD2_VERSION)
     {
@@ -195,18 +195,18 @@ void Md2::LoadModel(const char *md2FileName)
     }
 
     _model = std::make_unique<modData>();
-    
+
     _model->numPoints = head->vNum;
     _model->numFrames = head->Number_Of_Frames;
     _model->frameSize = head->framesize;
-    
+
     // Reserve space for vectors
     _model->pointList.resize(head->vNum * head->Number_Of_Frames);
 
     // Load vertex data
     for (int count = 0; count < head->Number_Of_Frames; count++)
     {
-        frame *fra = reinterpret_cast<frame*>(&buffer[head->offsetFrames + head->framesize * count]);
+        frame *fra = reinterpret_cast<frame *>(&buffer[head->offsetFrames + head->framesize * count]);
         for (int count2 = 0; count2 < head->vNum; count2++)
         {
             GLint index = head->vNum * count + count2;
@@ -219,7 +219,7 @@ void Md2::LoadModel(const char *md2FileName)
     // Load texture coordinates
     _model->numST = head->tNum;
     _model->st.resize(head->tNum);
-    textindx *stPtr = reinterpret_cast<textindx*>(&buffer[head->offsetTCoord]);
+    textindx *stPtr = reinterpret_cast<textindx *>(&buffer[head->offsetTCoord]);
 
     for (int count = 0; count < head->tNum; count++)
     {
@@ -230,7 +230,7 @@ void Md2::LoadModel(const char *md2FileName)
     // Load triangle indices
     _model->numTriangles = head->fNum;
     _model->triIndx.resize(head->fNum);
-    mesh *bufIndexPtr = reinterpret_cast<mesh*>(&buffer[head->offsetIndx]);
+    mesh *bufIndexPtr = reinterpret_cast<mesh *>(&buffer[head->offsetIndx]);
 
     for (int count2 = 0; count2 < head->fNum; count2++)
     {
