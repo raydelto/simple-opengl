@@ -16,7 +16,7 @@ Texture2D::~Texture2D()
 bool Texture2D::loadTexture(const string &fileName, bool generateMipMaps)
 {
     unsigned short width, height;
-    unsigned char *imageData = nullptr;
+    std::vector<unsigned char> imageData;
     
     if (!LoadTGA(fileName.c_str(), imageData, width, height))
     {
@@ -34,14 +34,13 @@ bool Texture2D::loadTexture(const string &fileName, bool generateMipMaps)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // TGA files are in BGR format
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, imageData);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, imageData.data());
 
     if (generateMipMaps)
     {
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 
-    free(imageData);
     glBindTexture(GL_TEXTURE_2D, 0);
 
     return true;

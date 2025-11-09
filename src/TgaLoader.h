@@ -1,3 +1,5 @@
 #pragma once
 
-bool LoadTGA(const char *filename, unsigned char *&data, unsigned short &width, unsigned short &height);
+#include <vector>
+
+bool LoadTGA(const char *filename, std::vector<unsigned char> &data, unsigned short &width, unsigned short &height);

@@ -1,13 +1,13 @@
 #include <iostream>
 #include <fstream>
-#include <utility>
+#include <vector>
 #include "TgaLoader.h"
 #include <cstring>
 
 constexpr int SIGNATURE_SIZE = 12;
 constexpr int BITS_PER_BYTE = 8;
 
-bool LoadTGA(const char *filename, unsigned char *&data, unsigned short &width, unsigned short &height)
+bool LoadTGA(const char *filename, std::vector<unsigned char> &data, unsigned short &width, unsigned short &height)
 {
     std::ifstream file(filename, std::ios::binary);
 
@@ -45,26 +45,19 @@ bool LoadTGA(const char *filename, unsigned char *&data, unsigned short &width, 
 
     bpp /= BITS_PER_BYTE;  // Convert bits per pixel to bytes per pixel
 
-    // Allocate memory for pixel data
+    // Allocate memory for pixel data using vector
     unsigned int dataLength = width * height * bpp;
-    data = static_cast<unsigned char*>(malloc(dataLength));
-    
-    if (!data)
-    {
-        std::cerr << "Could not allocate memory for the TGA image." << std::endl;
-        return false;
-    }
+    data.resize(dataLength);
 
     // Read pixel data
-    file.read(reinterpret_cast<char*>(data), dataLength);
+    file.read(reinterpret_cast<char*>(data.data()), dataLength);
 
     // Check if we read the expected amount of data
     if (file.gcount() != static_cast<std::streamsize>(dataLength))
     {
         std::cerr << "Could not read TGA pixel data. Expected " << dataLength 
                   << " bytes, got " << file.gcount() << " bytes." << std::endl;
-        free(data);
-        data = nullptr;
+        data.clear();
         return false;
     }
 
