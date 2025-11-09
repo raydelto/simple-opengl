@@ -1,8 +1,7 @@
 #include "Texture2D.h"
 #include <iostream>
 #include <cassert>
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image/stb_image.h"
+#include "TgaLoader.h"
 
 Texture2D::Texture2D()
     : mTexture(0)
@@ -14,45 +13,40 @@ Texture2D::~Texture2D()
     glDeleteTextures(1, &mTexture);
 }
 
-// Load a texture with a given filename using stb image loader
-// http://nothings.org/stb_image.h
-// Creates mip maps if generateMipMaps is true.
 bool Texture2D::loadTexture(const string &fileName, bool generateMipMaps)
 {
-    int width, height, components;
-
-    // Use stbi image library to load our image
-    unsigned char *imageData = stbi_load(fileName.c_str(), &width, &height, &components, STBI_rgb_alpha);
-
-    if (imageData == nullptr)
+    unsigned short width, height;
+    unsigned char *imageData = nullptr;
+    
+    if (!LoadTGA(fileName.c_str(), imageData, width, height))
     {
         std::cerr << "Error loading texture '" << fileName << "'" << std::endl;
         return false;
     }
 
     glGenTextures(1, &mTexture);
-    glBindTexture(GL_TEXTURE_2D, mTexture); // all upcoming GL_TEXTURE_2D operations will affect our texture object (mTexture)
+    glBindTexture(GL_TEXTURE_2D, mTexture);
 
-    // Set the texture wrapping/filtering options (on the currently bound texture object)
+    // Set the texture wrapping/filtering options
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+    // TGA files are in BGR format
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, imageData);
 
     if (generateMipMaps)
     {
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 
-    stbi_image_free(imageData);
-    glBindTexture(GL_TEXTURE_2D, 0); // unbind texture when done so we don't accidentally mess up our mTexture
+    free(imageData);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     return true;
 }
 
-// Bind the texture unit passed in as the active texture in the shader
 void Texture2D::bind(GLuint texUnit)
 {
     assert(texUnit >= 0 && texUnit < 32);

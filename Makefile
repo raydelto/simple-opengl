@@ -2,6 +2,7 @@ UNAME_S := $(shell uname -s)
 
 OBJ =  bin/ShaderProgram.o \
 	   bin/Texture2D.o \
+	   bin/TgaLoader.o \
 	   bin/Md2.o \
 	   bin/OpenGLHandler.o \
 	   bin/main.o
