@@ -11,7 +11,7 @@ all: bin/main
 
 ifeq ($(UNAME_S),Linux)
 LIBS = -lGL -lGLEW -lglfw -ldl
-INCLUDES=-I ./include
+INCLUDES=-isystem ./include
 
 clean:
 	rm bin/*.o
@@ -22,17 +22,16 @@ OBJ += bin/glad.o
 LIBS= -L/opt/homebrew/opt/glfw/lib \
 	  -lglfw
 
-INCLUDES=-I./include \
-		-I/opt/homebrew/opt/glfw/include \
-		-I/opt/homebrew/include \
-		-I./include \
-		-I/usr/local/include
+INCLUDES=-isystem./include \
+		-isystem/opt/homebrew/opt/glfw/include \
+		-isystem/opt/homebrew/include \
+		-isystem/usr/local/include
 
 else
 # Windows (MinGW64)
 LIBS = -lglew32 -lglfw3 -lopengl32 -lgdi32 \
 	   -LC:\msys64\mingw64\lib
-INCLUDES=-IC:\msys64\mingw64\include -I./include
+INCLUDES=-IC:\msys64\mingw64\include -isystem ./include
 
 clean: 
 	del bin\*.o
