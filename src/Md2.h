@@ -1,11 +1,6 @@
 #pragma once
 
-#define GLEW_STATIC
-#ifdef __APPLE__
-#include <glad/glad.h>
-#else
 #include "GL/glew.h"
-#endif
 #include "GLFW/glfw3.h"
 
 #include <cstdio>
@@ -129,4 +124,4 @@ namespace md2model
         void Draw(int frame, float angle, float interpolation, glm::mat4 &view, glm::mat4 &projection);
         void SetPause(bool pause) { m_pause = pause; }
     };
-} // namespace md2model
+}

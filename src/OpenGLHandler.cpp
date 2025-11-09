@@ -18,9 +18,7 @@ OpenGLHandler::~OpenGLHandler()
     glfwTerminate();
 }
 
-//-----------------------------------------------------------------------------
 // Initialize GLFW and OpenGL
-//-----------------------------------------------------------------------------
 bool OpenGLHandler::init()
 {
     // Intialize GLFW
@@ -36,7 +34,7 @@ bool OpenGLHandler::init()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // Create an OpenGL 3.3 core, forward compatible context window
+    // Create an OpenGL 3.3 core context window
     _window = glfwCreateWindow(_windowWidth, _windowHeight, APP_TITLE, NULL, NULL);
     if (_window == NULL)
     {
@@ -48,8 +46,7 @@ bool OpenGLHandler::init()
     // Make the window's context the current one
     glfwMakeContextCurrent(_window);
 
-    // Initialize GLEW
-
+    // Initialize GLEW (The OpenGL Extension Wrangler)
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK)
     {
@@ -70,30 +67,39 @@ bool OpenGLHandler::init()
     return true;
 }
 
-//-----------------------------------------------------------------------------
 // Is called whenever a key is pressed/released via GLFW
-//-----------------------------------------------------------------------------
 void OpenGLHandler::glfw_onKey(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GL_TRUE);
-
-    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
-        _pause = !_pause;
-
-    if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
+    if (action != GLFW_PRESS)
     {
+        return;
+    }
+
+    switch (key)
+    {
+    case GLFW_KEY_ESCAPE:
+        glfwSetWindowShouldClose(window, GL_TRUE);
+        break;
+
+    case GLFW_KEY_SPACE:
+        _pause = !_pause;
+        break;
+
+    case GLFW_KEY_F1:
         _wireframe = !_wireframe;
         if (_wireframe)
+        {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        }
         else
+        {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+        break;
     }
 }
 
-//-----------------------------------------------------------------------------
 // Is called when the window is resized
-//-----------------------------------------------------------------------------
 void OpenGLHandler::glfw_onFramebufferSize(GLFWwindow *window, int width, int height)
 {
     _windowWidth = width;
@@ -101,15 +107,12 @@ void OpenGLHandler::glfw_onFramebufferSize(GLFWwindow *window, int width, int he
     glViewport(0, 0, _windowWidth, _windowHeight);
 }
 
-//-----------------------------------------------------------------------------
-// Code computes the average frames per second, and also the average time it takes
-// to render one frame.  These stats are appended to the window caption bar.
-//-----------------------------------------------------------------------------
+// Show Frames Per Seconds
 void OpenGLHandler::showFPS()
 {
     static double previousSeconds = 0.0;
     static int frameCount = 0;
-    double currentSeconds = glfwGetTime(); // returns number of seconds since GLFW started, as double float
+    double currentSeconds = glfwGetTime(); // returns number of seconds since GLFW started, as double
 
     _elapsedSeconds = currentSeconds - previousSeconds;
 
