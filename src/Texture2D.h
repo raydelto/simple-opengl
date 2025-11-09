@@ -1,10 +1,7 @@
 #pragma once
-#ifdef __APPLE__
-#include <glad/glad.h>
-#else
 #include "GL/glew.h"
-#endif
 #include <string>
+
 using std::string;
 
 class Texture2D

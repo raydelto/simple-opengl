@@ -100,6 +100,13 @@ namespace md2model
 
     class Md2
     {
+    public:
+        Md2(const char *md2FileName, const char *textureFileName);
+        ~Md2();
+        // The frame parameter start at 0
+        void Draw(int frame, float angle, float interpolation, glm::mat4 &view, glm::mat4 &projection);
+        void SetPause(bool pause) { _pause = pause; }
+
     private:
         void LoadModel(const char *md2FileName);
         void LoadTexture(const char *textureFileName);
@@ -109,19 +116,12 @@ namespace md2model
         std::unique_ptr<Texture2D> m_texture;
         std::vector<GLuint> m_vaoIndices;
         std::vector<GLuint> m_vboIndices;
-        std::unique_ptr<ShaderProgram> m_shaderProgram;
-        std::map<int, std::pair<int, int>> m_frameIndices;
-        bool m_pause;
-        glm::vec3 m_position;
-        bool m_modelLoaded;
-        bool m_textureLoaded;
-        bool m_bufferInitialized;
-
-    public:
-        Md2(const char *md2FileName, const char *textureFileName);
-        ~Md2();
-        // The frame parameter start at 0
-        void Draw(int frame, float angle, float interpolation, glm::mat4 &view, glm::mat4 &projection);
-        void SetPause(bool pause) { m_pause = pause; }
+        std::unique_ptr<ShaderProgram> _shaderProgram;
+        std::map<int, std::pair<int, int>> _frameIndices;
+        bool _pause;
+        glm::vec3 _position;
+        bool _modelLoaded;
+        bool _textureLoaded;
+        bool _bufferInitialized;
     };
 }

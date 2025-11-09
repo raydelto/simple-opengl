@@ -6,17 +6,17 @@
 using namespace md2model;
 
 Md2::Md2(const char *md2FileName, const char *textureFileName) : m_texture(std::make_unique<Texture2D>()),
-                                                                 m_shaderProgram(std::make_unique<ShaderProgram>()),
-                                                                 m_pause(false),
-                                                                 m_position(glm::vec3(0.0f, 0.0f, -25.0f)),
-                                                                 m_modelLoaded(false),
-                                                                 m_textureLoaded(false),
-                                                                 m_bufferInitialized(false)
+                                                                 _shaderProgram(std::make_unique<ShaderProgram>()),
+                                                                 _pause(false),
+                                                                 _position(glm::vec3(0.0f, 0.0f, -25.0f)),
+                                                                 _modelLoaded(false),
+                                                                 _textureLoaded(false),
+                                                                 _bufferInitialized(false)
 {
     LoadModel(md2FileName);
     LoadTexture(textureFileName);
     InitBuffer();
-    m_shaderProgram->loadShaders("shaders/basic.vert", "shaders/basic.frag");
+    _shaderProgram->loadShaders("shaders/basic.vert", "shaders/basic.frag");
 }
 
 Md2::~Md2()
@@ -48,23 +48,23 @@ Md2::~Md2()
 
 void Md2::Draw(int frame, float angle, float interpolation, glm::mat4 &view, glm::mat4 &projection)
 {
-    assert(m_modelLoaded && m_textureLoaded && m_bufferInitialized);
+    assert(_modelLoaded && _textureLoaded && _bufferInitialized);
     m_texture->bind(0);
     glm::mat4 model;
 
     // Rotates around the cube center
-    model = glm::translate(model, m_position) * glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f)) * glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(model, glm::vec3(0.3, 0.3, 0.3));
+    model = glm::translate(model, _position) * glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.0f, 0.0f)) * glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(model, glm::vec3(0.3, 0.3, 0.3));
 
-    m_shaderProgram->use();
-    m_shaderProgram->setUniform("model", model);
-    m_shaderProgram->setUniform("view", view);
-    m_shaderProgram->setUniform("projection", projection);
-    m_shaderProgram->setUniform("modelView", view * model);
+    _shaderProgram->use();
+    _shaderProgram->setUniform("model", model);
+    _shaderProgram->setUniform("view", view);
+    _shaderProgram->setUniform("projection", projection);
+    _shaderProgram->setUniform("modelView", view * model);
 
     glBindVertexArray(m_vaoIndices[frame]);
 
-    GLint count = m_frameIndices[frame].second - m_frameIndices[frame].first + 1;
-    m_shaderProgram->setUniform("interpolation", interpolation);
+    GLint count = _frameIndices[frame].second - _frameIndices[frame].first + 1;
+    _shaderProgram->setUniform("interpolation", interpolation);
     glDrawArrays(GL_TRIANGLES, 0, count);
     glBindVertexArray(0);
 }
@@ -72,7 +72,7 @@ void Md2::Draw(int frame, float angle, float interpolation, glm::mat4 &view, glm
 void Md2::LoadTexture(const char *textureFileName)
 {
     m_texture->loadTexture(textureFileName, true);
-    m_textureLoaded = true;
+    _textureLoaded = true;
 }
 
 void Md2::InitBuffer()
@@ -121,7 +121,7 @@ void Md2::InitBuffer()
             }
             // End of the vertex data
         }
-        m_frameIndices[m_model->currentFrame] = {startVertex, vertexIndex - 1};
+        _frameIndices[m_model->currentFrame] = {startVertex, vertexIndex - 1};
         m_model->currentFrame++;
     }
 
@@ -133,9 +133,9 @@ void Md2::InitBuffer()
         glGenBuffers(1, &vbo);      // Generate an empty vertex buffer on the GPU
         glGenVertexArrays(1, &vao); // Tell OpenGL to create new Vertex Array Object
 
-        auto count = m_frameIndices[frameIndex].second - m_frameIndices[frameIndex].first + 1;
+        auto count = _frameIndices[frameIndex].second - _frameIndices[frameIndex].first + 1;
         glBindBuffer(GL_ARRAY_BUFFER, vbo);                                                                                           // "bind" or set as the current buffer we are working with
-        glBufferData(GL_ARRAY_BUFFER, count * sizeof(float) * 8, &md2Vertices[m_frameIndices[frameIndex].first * 8], GL_STATIC_DRAW); // copy the data from CPU to GPU
+        glBufferData(GL_ARRAY_BUFFER, count * sizeof(float) * 8, &md2Vertices[_frameIndices[frameIndex].first * 8], GL_STATIC_DRAW); // copy the data from CPU to GPU
 
         glBindVertexArray(vao); // Make it the current one
 
@@ -158,7 +158,7 @@ void Md2::InitBuffer()
     }
 
     glBindVertexArray(0); // unbind to make sure other code doesn't change it
-    m_bufferInitialized = true;
+    _bufferInitialized = true;
 }
 
 void Md2::LoadModel(const char *md2FileName)
@@ -243,5 +243,5 @@ void Md2::LoadModel(const char *md2FileName)
 
     free(buffer);
     fclose(fp);
-    m_modelLoaded = true;
+    _modelLoaded = true;
 }
