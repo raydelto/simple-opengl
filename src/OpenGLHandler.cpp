@@ -58,7 +58,8 @@ bool OpenGLHandler::init()
     glfwSetKeyCallback(_window, glfw_onKey);
     glfwSetFramebufferSizeCallback(_window, glfw_onFramebufferSize);
 
-    glClearColor(0.0, 0.0f, 0.0f, 1.0f);
+    // Brown background
+    glClearColor(0.25f, 0.2f, 0.15f, 1.0f);
 
     // Define the viewport dimensions
     glViewport(0, 0, _windowWidth, _windowHeight);
