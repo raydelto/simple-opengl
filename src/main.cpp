@@ -6,7 +6,7 @@
 namespace
 {
     constexpr float MODEL_SCALE = 0.3f;
-    constexpr float ROTATION_SPEED = 50.0f;  // degrees per second
+    constexpr float ROTATION_SPEED = 50.0f; // degrees per second
     constexpr float ANIMATION_VELOCITY = 5.0f;
 }
 
@@ -28,12 +28,58 @@ int main()
 
 void display(OpenGLHandler &openGL)
 {
-    // Frame numbers and actions is documented in MD2 format
+    // MD2 Animation and their corresponding frame numbers
+    /*
+    // Standing / idle
+    stand      : 0   - 39
+
+    // Running
+    run        : 40  - 45
+
+    // Attacks (standing)
+    attack     : 46  - 53     // (sometimes split into attack1 / attack2 / attack3)
+
+    // Pain / damage reactions
+    pain1      : 54  - 57
+    pain2      : 58  - 61
+    pain3      : 62  - 65
+
+    // Jumping
+    jump       : 66  - 71
+
+    // Other gestures
+    flip       : 72  - 83
+    salute     : 84  - 94
+    taunt      : 95  - 111
+    wave       : 112 - 122
+    point      : 123 - 134
+
+    // Crouch idle / move / attack
+    cr_stand   : 135 - 153
+    cr_walk    : 154 - 159
+    cr_attack  : 160 - 168
+    cr_pain    : 169 - 172
+    cr_death   : 173 - 177
+
+    // Death animations
+    death1     : 178 - 183
+    death2     : 184 - 189
+    death3     : 190 - 197
+
+    */
+
+    // Running animation frames (See the chart above to change animation)
     constexpr int startFrame = 0;
     constexpr int endFrame = 197;
 
-    md2model::Md2 player("data/female.md2", "data/female.tga");
-    
+    // Uncomment the lines below one by one to load new models and textures
+    md2model::Md2 player("data/cyborg.md2", "data/cyborg1.tga");
+    // md2model::Md2 player("data/cyborg.md2", "data/cyborg2.tga");
+    // md2model::Md2 player("data/cyborg.md2", "data/cyborg3.tga");
+    // md2model::Md2 player("data/female.md2", "data/female.tga");
+    // md2model::Md2 player("data/grunt.md2", "data/grunt.tga");
+    // md2model::Md2 player("data/tris.md2", "data/tris.tga");
+
     if (!player.isValid())
     {
         std::cerr << "Failed to load MD2 model" << std::endl;
@@ -88,14 +134,7 @@ void display(OpenGLHandler &openGL)
         if (interpolation >= 1.0f)
         {
             interpolation = 0.0f;
-            if (renderFrame == endFrame)
-            {
-                renderFrame = startFrame;
-            }
-            else
-            {
-                renderFrame++;
-            }
+            renderFrame = renderFrame == endFrame ? startFrame : renderFrame + 1;
         }
         interpolation += ANIMATION_VELOCITY * deltaTime;
     }
