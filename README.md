@@ -252,11 +252,11 @@ INCLUDES = -I<your_msys2_path>\mingw64\include
 LIBS = -L<your_msys2_path>\mingw64\lib ...
 ```
 
+## Screenshot
+
+![MD2 Loader Screenshot](screenshot.png)
+
 ## Author
 
 Raydelto Hernandez (raydelto@yahoo.com)
-
-## Screenshot
-
-[![screenshot](http://www.raydelto.org/img/MD2_Loader_glfw.png)](https://github.com/raydelto/simple-opengl/)
 
