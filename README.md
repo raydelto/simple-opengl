@@ -48,37 +48,69 @@ pacman -S mingw-w64-x86_64-make
 # Install OpenGL libraries
 pacman -S mingw-w64-x86_64-glew
 pacman -S mingw-w64-x86_64-glfw
+
+# Install GLM (OpenGL Mathematics library)
+pacman -S mingw-w64-x86_64-glm
 ```
 
 Or install all at once:
 
 ```bash
-pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-glew mingw-w64-x86_64-glfw
+pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-glew mingw-w64-x86_64-glfw mingw-w64-x86_64-glm
 ```
 
-**Note:** GLM (OpenGL Mathematics library) is included in the `include/` directory and does not need to be installed separately.
+#### 4. Configure MinGW64 Environment
 
-#### 4. Add MinGW64 to PATH
+**Option A: Use MSYS2 MinGW64 Terminal (Recommended)**
+- Always launch **MSYS2 MinGW64** (not MSYS2 MSYS or UCRT64)
+- This terminal has the correct PATH pre-configured
 
-Add `C:\msys64\mingw64\bin` to your Windows PATH environment variable, or always use the **MSYS2 MinGW64** terminal.
+**Option B: Use Windows Terminal (PowerShell/CMD)**
+- Add `C:\msys64\mingw64\bin` to your system PATH
+- Required DLLs will be accessible: `glew32.dll`, `glfw3.dll`, etc.
 
 ### Building the Project
 
-1. Clone the repository:
+#### From MSYS2 MinGW64 Terminal
+
+1. Navigate to project directory:
 ```bash
-git clone https://github.com/raydelto/simple-opengl.git
-cd simple-opengl
+cd /c/git/simple-opengl
 ```
 
-2. Build using Make:
+2. Create bin directory (if it doesn't exist):
+```bash
+mkdir -p bin
+```
+
+3. Build using Make:
 ```bash
 make
 ```
 
-3. Clean build artifacts:
+The build output will be `bin/main.exe`.
+
+4. Clean build artifacts:
 ```bash
 make clean
 ```
+
+#### From Windows PowerShell/CMD
+
+If MinGW64 is in your PATH:
+
+```powershell
+# Create bin directory
+mkdir bin -Force
+
+# Build
+make
+
+# Clean
+make clean
+```
+
+**Note:** The Makefile uses hardcoded paths to `C:\msys64\mingw64` for includes and libraries. If MSYS2 is installed elsewhere, edit the `Makefile` `INCLUDES` and `LIBS` variables accordingly.
 
 ### Running the Application
 
@@ -87,19 +119,37 @@ From MSYS2 MinGW64 terminal:
 ./bin/main.exe
 ```
 
-Or from Windows Command Prompt/PowerShell:
+From Windows PowerShell:
 ```powershell
 .\bin\main.exe
 ```
 
+From Windows Command Prompt:
+```cmd
+bin\main.exe
+```
+
 ## Usage
 
-When the application launches, an animated MD2 model (female character) will render with smooth frame interpolation.
+When the application launches, an animated MD2 model (cyborg character) will render with smooth frame interpolation.
 
 **Controls:**
 - **SPACE**: Pause/resume rotation
 - **F1**: Toggle wireframe mode
 - **ESC**: Exit application
+
+### Available MD2 Models
+
+The `data/` directory includes several MD2 models with textures:
+- `cyborg.md2` / `cyborg1-3.tga` (default)
+- `female.md2` / `female.tga`
+- `grunt.md2` / `grunt.tga`
+- `tris.md2` / `skin.tga`
+
+To use a different model, edit `src/main.cpp` line 35:
+```cpp
+md2model::Md2 player("data/cyborg.md2", "data/cyborg3.tga");
+```
 
 ## Project Structure
 
@@ -116,11 +166,10 @@ simple-opengl/
 │   ├── basic.vert            # Vertex shader with interpolation
 │   └── basic.frag            # Fragment shader
 ├── data/
-│   ├── female.md2            # MD2 model file
-│   └── female.tga            # Texture file
-├── include/                  # Third-party headers (GLM, GLEW, GLFW)
+│   ├── *.md2                 # MD2 model files (cyborg, female, grunt, tris)
+│   └── *.tga                 # Texture files
 ├── bin/                      # Build output (generated)
-└── Makefile                  # Build configuration
+└── Makefile                  # Build configuration (MinGW64)
 ```
 
 ## Technical Details
@@ -130,32 +179,78 @@ simple-opengl/
 - **Libraries**: 
   - GLEW (OpenGL Extension Wrangler)
   - GLFW3 (Window and input management)
-  - GLM (Bundled - OpenGL Mathematics)
+  - GLM (OpenGL Mathematics - header-only)
 - **Build System**: GNU Make
-- **Compiler**: MinGW64 GCC
+- **Compiler**: MinGW64 GCC (via MSYS2)
 
 ## Troubleshooting
 
-### "Cannot find -lglew32" or similar errors
+### "Cannot find -lglew32" or similar linker errors
 
-Make sure you installed the libraries in the **MinGW64** environment:
+Make sure you installed the libraries in the **MinGW64** environment (not MSYS2 or UCRT64):
 ```bash
 pacman -S mingw-w64-x86_64-glew mingw-w64-x86_64-glfw
 ```
 
+Verify installation:
+```bash
+ls /mingw64/lib/libglew32.a
+ls /mingw64/lib/libglfw3.a
+ls /mingw64/include/glm/glm.hpp
+```
+
 ### "command not found: make"
 
-Either:
-1. Use `mingw32-make` instead of `make`, or
-2. Install make: `pacman -S mingw-w64-x86_64-make`
+**Solution A:** Use the MSYS2 MinGW64 terminal (has `make` by default)
 
-### Application doesn't run
+**Solution B:** Install make for MinGW64:
+```bash
+pacman -S mingw-w64-x86_64-make
+```
 
-Ensure the required DLLs are in your PATH:
-- `glew32.dll`
-- `glfw3.dll`
+**Solution C:** Use `mingw32-make` instead of `make`
 
-Or run from MSYS2 MinGW64 terminal which has the correct PATH set.
+### "g++: command not found"
+
+Install the GCC compiler:
+```bash
+pacman -S mingw-w64-x86_64-gcc
+```
+
+### Application doesn't run / Missing DLL errors
+
+**Symptom:** `glew32.dll`, `glfw3.dll`, or `libstdc++-6.dll` not found
+
+**Solution A:** Run from MSYS2 MinGW64 terminal (has correct PATH)
+
+**Solution B:** Add to Windows PATH:
+```
+C:\msys64\mingw64\bin
+```
+
+**Solution C:** Copy required DLLs to `bin/` directory:
+```bash
+cp /mingw64/bin/glew32.dll bin/
+cp /mingw64/bin/glfw3.dll bin/
+cp /mingw64/bin/libstdc++-6.dll bin/
+cp /mingw64/bin/libgcc_s_seh-1.dll bin/
+cp /mingw64/bin/libwinpthread-1.dll bin/
+```
+
+### Wrong MSYS2 environment
+
+Make sure you're using **MSYS2 MinGW64**, not:
+- MSYS2 MSYS (uses different toolchain)
+- MSYS2 UCRT64 (different C runtime)
+- MSYS2 CLANG64 (different compiler)
+
+### Makefile path issues
+
+If MSYS2 is not installed at `C:\msys64`, edit the `Makefile` and update:
+```makefile
+INCLUDES = -I<your_msys2_path>\mingw64\include
+LIBS = -L<your_msys2_path>\mingw64\lib ...
+```
 
 ## Author
 
